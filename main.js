@@ -19,7 +19,7 @@ function convert(code) {
       lastspan = spans.slice(-1)[0];
       test = (regex, category, color) => {
         if (regex.test(l)) {
-          if (lastspan && lastspan[1] == category) {
+          if (lastspan && [category, 'unended quote'].includes(lastspan[1])) {
             lastspan[0] += l;
           } else if (lastspan && lastspan[1] == 'space') {
             lastspan[0] = `<span style="color: ${color}; font-family: monospace;">${lastspan[0]}${l}`;
@@ -38,7 +38,16 @@ function convert(code) {
         }
         return;
       }
-      test(/[^\(\)\[\]\d'\s]/, 'blue', '#34489b');
+      if (/"/.test(l)) {
+        if (lastspan && lastspan[1] == 'unended quote') {
+          lastspan[0] += l;
+          lastspan[1] = 'ended quote';
+        } else {
+          if (lastspan) lastspan[0] += "</span>";
+          spans.push([`<span style="color: rgb(67, 126, 51); font-family: monospace;">${l}`, 'unended quote']);
+        }
+      }
+      test(/[^\(\)\[\]\d'"\s]/, 'blue', '#34489b');
       test(/[\(\)\[\]]/, 'brown', '#9b503a');
       test(/[\d']/, 'green', 'rgb(67, 126, 51)');
     });
